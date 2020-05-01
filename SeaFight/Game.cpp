@@ -59,13 +59,14 @@ struct Ship
 
 void printField(int playingField[][10])
 {
-
-	std::cout << "\n -------------------------------------------------------------\n";
+	std::cout << "\n      0     1     2     3     4     5     6     7     8     9";
+	std::cout << "\n   -------------------------------------------------------------\n";
 	for (int i = 0; i < 10; ++i)
 	{
+		std::cout << " " << i;
 		for (int j = 0; j < 10; ++j)
 		{
-			std::cout << " | ";
+			std::cout <<" | ";
 			if (playingField[j][i] == FieldLabel::LABEL_EMPTY)
 			{
 				std::cout << "   ";
@@ -83,7 +84,7 @@ void printField(int playingField[][10])
 				std::cout << " o ";
 			}
 		}
-		std::cout << " |\n -------------------------------------------------------------\n";
+		std::cout << " |\n   -------------------------------------------------------------\n";
 	}
 
 }
@@ -266,48 +267,7 @@ void placingShipOnField(int playingField[][10], Ship &ship)
 	for (int i = 0; i < ship.Length; ++i)
 	{
 		playingField[ship.ShipCoordinates[0][i]][ship.ShipCoordinates[1][i]] = 1;
-	}
-
-	//switch (ship.Direction)
-	//{
-	//
-	//case ship.ShipDirection::DIRECTION_TOP:
-	//
-	//	for (int i = ship.Y; i < (ship.Y + ship.Length); ++i)
-	//	{
-	//		playingField[ship.X][i] = 1;
-	//	}
-	//
-	//	break;
-	//
-	//case ship.ShipDirection::DIRECTION_RIGHT:
-	//
-	//	for (int i = ship.X; i < (ship.X + ship.Length); ++i)
-	//	{
-	//		playingField[i][ship.Y] = 1;
-	//	}
-	//
-	//	break;
-	//
-	//case ship.ShipDirection::DIRECTION_BOTTOM:
-	//
-	//	for (int i = ship.Y; i < (ship.Y - ship.Length); --i)
-	//	{
-	//		playingField[ship.X][i] = 1;
-	//	}
-	//
-	//	break;
-	//
-	//case ship.ShipDirection::DIRECTION_LEFT:
-	//
-	//	for (int i = ship.X; i < (ship.X - ship.Length); --i)
-	//	{
-	//		playingField[i][ship.Y] = 1;
-	//	}
-	//
-	//	break;
-	//
-	//}
+	}	
 
 }
 
@@ -468,7 +428,7 @@ int  main()
 	int computerField[10][10] = { 0 };
 	int computerBattleField[10][10] = { 0 };
 
-	manualShipPlacement(playerField, playerShips);
+	//manualShipPlacement(playerField, playerShips);
 	automaticShipPlacement(computerField, computerShips);
 
 	printField(playerField);
