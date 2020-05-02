@@ -9,7 +9,8 @@ enum FieldLabel
 	LABEL_EMPTY,
 	LABEL_SHIP,
 	LABEL_HIT,
-	LABEL_MISS
+	LABEL_MISS,
+	LABEL_BUFFER
 
 };
 
@@ -55,8 +56,56 @@ struct Ship
 
 	};
 
+	// Проверка жив ли корабль
+	void CheckIsLive(int playingField[][10]) 
+	{
+
+		for (int i = 0; i < Length; ++i)
+		{
+
+			if (playingField[ShipCoordinates[0][i]][ShipCoordinates[1][i]] == 0)
+			{
+				return;
+			}
+				
+		}
+
+		IsLive = false;
+		Buffer(playingField);
+
+		std::cout << "\nShip destroyed!\n";
+
+	}
+
+	// Создание буфферной зоны вокруг потопленного коробля
+	void Buffer(int playingField[][10])  
+	{
+
+		int checkArray[8][2] =
+		{
+			{0, 1},  {1, 1},   {1, 0},  {1, -1},
+			{0, -1}, {-1, -1}, {-1, 0}, {-1, 1}
+		};
+		
+		for (int i = 0; i < Length; ++i)
+		{
+			for (int j = 0; j < 8; ++j)
+			{
+				if (playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] >= 0 && playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] < 10)
+				{
+					if (playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] == 0)
+					{
+						playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] = 4;
+					}
+				}
+			}
+		}
+
+	}
+
 };
 
+// Вывод поля на экран
 void printField(int playingField[][10])
 {
 	std::cout << "\n      0     1     2     3     4     5     6     7     8     9";
@@ -89,7 +138,8 @@ void printField(int playingField[][10])
 
 }
 
-bool placementCheck(int playingField[][10], Ship &ship) // Проверка на возможность размещения корабля
+// Проверка на возможность размещения корабля
+bool placementCheck(int playingField[][10], Ship &ship) 
 {	
 
 	std::vector<std::vector<int> > shipCoordinates(2, (std::vector<int>(ship.Length, 0))); // Координаты текущего корабля
@@ -242,6 +292,7 @@ bool placementCheck(int playingField[][10], Ship &ship) // Проверка на возможнос
 
 }
 
+//Рандомная генерация кораблей
 void shipGeneration(int playingField[][10], Ship &ship, int length)
 {
 
@@ -261,6 +312,7 @@ void shipGeneration(int playingField[][10], Ship &ship, int length)
 
 }
 
+// Запись коробля в массив 
 void placingShipOnField(int playingField[][10], Ship &ship)
 {
 
@@ -271,6 +323,7 @@ void placingShipOnField(int playingField[][10], Ship &ship)
 
 }
 
+// Рцчное размещение кораблей
 void manualShipPlacement(int playingField[][10], Ship shipsArray[])
 {
 
@@ -382,6 +435,7 @@ void manualShipPlacement(int playingField[][10], Ship shipsArray[])
 
 }
 
+// Автоматическое размещение кораблей
 void automaticShipPlacement(int playingField[][10], Ship shipsArray[])
 {
 
@@ -414,6 +468,82 @@ void automaticShipPlacement(int playingField[][10], Ship shipsArray[])
 
 }
 
+// Рандомный выстрел
+void randomFight(int field[][10], int battleField[][10])
+{
+
+	while (true)
+	{		
+
+		int x = rand() % 10;
+		int y = rand() % 10;
+
+		if (battleField[x][y] == 0)
+		{
+
+			if (field[x][y] == 0)
+			{
+				battleField[x][y] = 3;
+				break;
+			}
+			else if (field[x][y] == 1)
+			{
+				battleField[x][y] = 2;
+				break;
+			}
+
+		}
+
+	}
+
+}
+
+// Ручной выстрел
+void manualFight(int field[][10], int battleField[][10])
+{
+
+	int x = 0;
+	int y = 0;
+
+	while (true)
+	{
+		system("cls");
+		printField(battleField);
+		std::cout << "\n\n\nEnter the coordinates of the shoot (X, Y): ";
+		std::cin >> x >> y;	
+		system("cls");
+
+		if (battleField[x][y] == 0)
+		{
+
+			if (field[x][y] == 0)
+			{
+				battleField[x][y] = 3;
+				printField(battleField);
+				std::cout << "\nYou miss!\n\n";
+				system("pause");
+				break;
+			}
+			else if (field[x][y] == 1)
+			{
+				battleField[x][y] = 2;
+				printField(battleField);
+				std::cout << "\nYou hit an enemy ship!\n\n";
+				system("pause");
+				break;
+			}
+
+		}
+
+		std::cout << "\nYou have already shot at the given coordinates. Enter others coordinates.\n";
+
+		system("pause");
+		system("cls");
+
+	}
+
+}
+
 
 int  main()
 {	
@@ -428,12 +558,21 @@ int  main()
 	int computerField[10][10] = { 0 };
 	int computerBattleField[10][10] = { 0 };
 
-	//manualShipPlacement(playerField, playerShips);
+	automaticShipPlacement(playerField, playerShips);
 	automaticShipPlacement(computerField, computerShips);
 
 	printField(playerField);
 	std::cout << "\n\n\n";
-	printField(computerField);
+	//printField(computerField);
+
+	for (int i = 0; i < 20; ++i)
+	{
+		randomFight(playerField, playerBattleField);
+		printField(playerBattleField);
+		manualFight(computerField, computerBattleField);
+		system("cls");		
+		std::cout << "\n\n\n";
+	}
 
 	system("pause");
 
