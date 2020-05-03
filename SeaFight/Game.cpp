@@ -2,6 +2,7 @@
 #include <ctime>
 #include <vector>
 #include <iomanip>
+#include <Windows.h>
 
 enum FieldLabel
 {
@@ -73,7 +74,7 @@ struct Ship
 		IsLive = false;
 		Buffer(playingField);
 
-		std::cout << "\nShip destroyed!\n";
+		std::cout << "Ship destroyed!\n\n";		
 
 	}
 
@@ -91,11 +92,11 @@ struct Ship
 		{
 			for (int j = 0; j < 8; ++j)
 			{
-				if (playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] >= 0 && playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] < 10)
+				if ((ShipCoordinates[0][i] + checkArray[j][0]) >= 0 && (ShipCoordinates[1][i] + checkArray[j][1]) >= 0 && (ShipCoordinates[0][i] + checkArray[j][0]) < 10 && (ShipCoordinates[1][i] + checkArray[j][1]) < 10)
 				{
-					if (playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] == 0)
+					if (playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] == FieldLabel::LABEL_EMPTY)
 					{
-						playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] = 4;
+						playingField[ShipCoordinates[0][i] + checkArray[j][0]][ShipCoordinates[1][i] + checkArray[j][1]] = FieldLabel::LABEL_BUFFER;
 					}
 				}
 			}
@@ -131,6 +132,10 @@ void printField(int playingField[][10])
 			else if (playingField[j][i] == FieldLabel::LABEL_MISS)
 			{
 				std::cout << " o ";
+			}
+			else if (playingField[j][i] == FieldLabel::LABEL_BUFFER)
+			{
+				std::cout << " . ";
 			}
 		}
 		std::cout << " |\n   -------------------------------------------------------------\n";
@@ -323,7 +328,7 @@ void placingShipOnField(int playingField[][10], Ship &ship)
 
 }
 
-// Рцчное размещение кораблей
+// Ручное размещение кораблей
 void manualShipPlacement(int playingField[][10], Ship shipsArray[])
 {
 
@@ -468,27 +473,75 @@ void automaticShipPlacement(int playingField[][10], Ship shipsArray[])
 
 }
 
-// Рандомный выстрел
-void randomFight(int field[][10], int battleField[][10])
+// Проверка массива кораблей на жизнь 
+bool checkShipsIsLive(Ship ships[], int battleField[][10])
 {
+
+	bool gameOver = true;
+
+	for (int i = 0; i < 10; ++i)
+	{
+		if (ships[i].IsLive == true)
+		{			
+			ships[i].CheckIsLive(battleField);
+		}
+	}
+
+	for (int i = 0; i < 10; ++i)
+	{
+		if (ships[i].IsLive == true)
+		{
+			gameOver = false;
+		}
+	}
+
+
+	return gameOver;
+
+}
+
+// Рандомный выстрел
+bool randomFight(int field[][10], int battleField[][10], Ship ships[], bool &gameOver)
+{
+
+	bool moveTransition = true;
 
 	while (true)
 	{		
 
+		system("cls");
+		printField(battleField);
+		std::cout << "Computer turn";
+		//Sleep(1000);
 		int x = rand() % 10;
 		int y = rand() % 10;
 
-		if (battleField[x][y] == 0)
+		if (battleField[x][y] == FieldLabel::LABEL_EMPTY || field[x][y] == FieldLabel::LABEL_BUFFER)
 		{
 
-			if (field[x][y] == 0)
+			if (field[x][y] == FieldLabel::LABEL_EMPTY)
 			{
-				battleField[x][y] = 3;
+				system("cls");
+				battleField[x][y] = FieldLabel::LABEL_MISS;
+				printField(battleField);
+				std::cout << "\n\nComputer miss\n\n";
+				//system("pause"); 
 				break;
 			}
-			else if (field[x][y] == 1)
+			else if (field[x][y] == FieldLabel::LABEL_SHIP)
 			{
-				battleField[x][y] = 2;
+				system("cls");
+				battleField[x][y] = FieldLabel::LABEL_HIT;
+				printField(battleField);
+				std::cout << "\n\nYour ship is damaged!\n\n";				
+
+				if (checkShipsIsLive(ships, battleField))
+				{
+					gameOver = true;
+				}
+
+				//system("pause");				
+				moveTransition = false;
 				break;
 			}
 
@@ -496,11 +549,15 @@ void randomFight(int field[][10], int battleField[][10])
 
 	}
 
+	return moveTransition;
+
 }
 
 // Ручной выстрел
-void manualFight(int field[][10], int battleField[][10])
+bool manualFight(int field[][10], int battleField[][10], Ship ships[], bool &gameOver)
 {
+
+	bool moveTransition = true;
 
 	int x = 0;
 	int y = 0;
@@ -510,26 +567,33 @@ void manualFight(int field[][10], int battleField[][10])
 		system("cls");
 		printField(battleField);
 		std::cout << "\n\n\nEnter the coordinates of the shoot (X, Y): ";
-		std::cin >> x >> y;	
-		system("cls");
+		std::cin >> x >> y;			
 
-		if (battleField[x][y] == 0)
+		if (battleField[x][y] == FieldLabel::LABEL_EMPTY || field[x][y] == FieldLabel::LABEL_BUFFER)
 		{
+			system("cls");
 
-			if (field[x][y] == 0)
+			if (field[x][y] == FieldLabel::LABEL_EMPTY)
 			{
-				battleField[x][y] = 3;
+				battleField[x][y] = FieldLabel::LABEL_MISS;
 				printField(battleField);
 				std::cout << "\nYou miss!\n\n";
 				system("pause");
 				break;
 			}
-			else if (field[x][y] == 1)
+			else if (field[x][y] == FieldLabel::LABEL_SHIP)
 			{
-				battleField[x][y] = 2;
-				printField(battleField);
+				battleField[x][y] = FieldLabel::LABEL_HIT;
+				printField(battleField);				
 				std::cout << "\nYou hit an enemy ship!\n\n";
+
+				if (checkShipsIsLive(ships, battleField))
+				{
+					gameOver = true;
+				}
+
 				system("pause");
+				moveTransition = false;
 				break;
 			}
 
@@ -537,17 +601,20 @@ void manualFight(int field[][10], int battleField[][10])
 
 		std::cout << "\nYou have already shot at the given coordinates. Enter others coordinates.\n";
 
-		system("pause");
-		system("cls");
+		system("pause");		
 
 	}
+
+	return moveTransition;
 
 }
 
 
+
+
 int  main()
 {	
-
+	bool gameOver = false;
 	srand(time(NULL));		
 	
 	Ship playerShips[10];
@@ -557,25 +624,104 @@ int  main()
 	Ship computerShips[10];
 	int computerField[10][10] = { 0 };
 	int computerBattleField[10][10] = { 0 };
+	
+	automaticShipPlacement(computerField, computerShips);	
 
-	automaticShipPlacement(playerField, playerShips);
-	automaticShipPlacement(computerField, computerShips);
+	std::cout << "*********************************************************************************\n";
+	std::cout << "\t\t\tWELCOME TO Sea FIGHT v0.03\n";
+	std::cout << "*********************************************************************************\n\n";
 
-	printField(playerField);
-	std::cout << "\n\n\n";
-	//printField(computerField);
+	int menu = 0;
 
-	for (int i = 0; i < 20; ++i)
-	{
-		randomFight(playerField, playerBattleField);
-		printField(playerBattleField);
-		manualFight(computerField, computerBattleField);
-		system("cls");		
-		std::cout << "\n\n\n";
+	while (true)
+	{		
+		std::cout << "\nMENU:\n\n";
+		std::cout << "1. Automatic Ship Placement\n";
+		std::cout << "2. Manual Ship Placement\n";
+		std::cout << "3. Exit\n";
+		std::cin >> menu;
+
+		if (menu > 0 && menu < 4)
+		{
+			break;
+		}
+		system("cls");
 	}
 
-	system("pause");
+	switch (menu)
+	{
+	case 1:
+		automaticShipPlacement(playerField, playerShips);
+		system("cls");
+		printField(playerField);
+		system("pause");
+		break;
+	case 2:
+		manualShipPlacement(playerField, playerShips);
+		break;
+	case 3:
+		std::cout << "\nGoodbye!\n\n";
+		system("pause");
+		return 0;
+	}
 
-	return 0;
+	while (true)
+	{					
+
+		while (true)
+		{
+			if (manualFight(computerField, computerBattleField, computerShips, gameOver))
+			{
+				break;
+			}
+
+			if (gameOver)
+			{
+				std::cout << "\n\n****************************************************\n";
+				std::cout << "\t\tYou wins!\n\t\tGame over!\n";
+				std::cout << "****************************************************\n\n";
+				system("pause");
+				return 0;
+			}
+
+		}
+
+		//while (true)
+		//{	
+		//	if (randomFight(computerField, computerBattleField, computerShips, gameOver))
+		//	{
+		//		break;
+		//	}
+
+		//	if (gameOver)
+		//	{
+		//		std::cout << "\n\n****************************************************\n";
+		//		std::cout << "\t\tYou wins!\n\t\tGame over!\n";
+		//		std::cout << "****************************************************\n\n";
+		//		system("pause");
+		//		return 0;
+		//	}
+
+		//}
+
+		while (true)
+		{
+			if (randomFight(playerField, playerBattleField, playerShips, gameOver))
+			{
+				break;
+			}
+
+			if (gameOver)
+			{
+				std::cout << "\n\n****************************************************\n";
+				std::cout << "\t\tComputer wins!\n\t\tGame over!\n";
+				std::cout << "****************************************************\n\n";
+				system("pause");
+				return 0;
+			}
+
+		}
+		
+	}
 
 }
